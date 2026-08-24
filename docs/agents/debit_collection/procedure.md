@@ -1,48 +1,35 @@
 # Procedure: Thu Thập & Thỏa Thuận Thanh Toán (Promise To Pay)
 
-Procedure này được thiết kế theo dạng **Deterministic** (Các bước thực hiện tuần tự). Nhiệm vụ của nó là hoạt động như một "bảng kiểm" (checklist) để thu thập thông tin còn thiếu từ khách hàng dựa trên các `state variables`.
+Procedure này được thiết kế theo dạng **Free Form** (Kịch bản mở dựa trên Checklist). Nhiệm vụ của nó là hoạt động như một "bảng kiểm" để thu thập thông tin còn thiếu từ khách hàng.
 
 ## 1. Cấu hình chung
 
-- **Tên Procedure:** `collect_ptp_info`
-- **Loại:** `deterministic`
+- **Tên Procedure:** `Thu Thập Thông Tin PTP (Bảng Tích)`
+- **Loại:** `free_form`
 - **Trigger:** "Khách hàng đã xác nhận đúng thông tin khoản nợ và đồng ý trao đổi tiếp."
 
-## 2. Kịch bản đánh giá "Bảng tích" (Condition Logic)
+## 2. Kịch bản (Prompt)
 
-Nhờ việc dữ liệu trạng thái đã được kéo về (thông qua webhook `get_debt_info`), Agent sẽ biết trường nào bị trống (`null`). Tại mỗi bước, Agent ngầm kiểm tra:
-- **Nếu đã có dữ liệu:** Bỏ qua không hỏi (hoặc chỉ xác nhận lại một câu ngắn gọn nếu cần thiết).
-- **Nếu chưa có dữ liệu:** Đặt câu hỏi theo kịch bản để thu thập và lưu vào biến.
+```markdown
+Bạn có nhiệm vụ thu thập thông tin Cam kết thanh toán (PTP) từ khách hàng. Hãy hoạt động như một "bảng kiểm" (checklist) để thu thập thông tin còn thiếu.
 
-## 3. Các bước (Steps) của Procedure
+BƯỚC 1: KHỞI TẠO THÔNG TIN
+- Ngay khi bắt đầu, BẮT BUỘC gọi tool `get_debt_info` để lấy thông tin khoản nợ và các biến trạng thái (dynamic variables) hiện có của khách hàng.
+- Đọc và set các biến: `confirm`, `reason_late_paid`, `proposed_solution`, `promised_payment_amount`, `promised_payment_time` từ kết quả trả về của tool.
 
-### Step 1: Hỏi lý do quá hạn (`reason_late_paid`)
-- **Điều kiện:** `if (state.reason_late_paid == null)`
-- **Hành động (Action):** `question`
-- **Kịch bản (Prompt):** "Dạ anh/chị cho em hỏi hiện tại mình đang gặp khó khăn gì mà chưa thể thanh toán khoản nợ này đúng hạn ạ?"
-- **Expected Variable:** `reason` (Lưu ý: Agent lắng nghe và trích xuất lý do thành text ngắn gọn).
+BƯỚC 2: THU THẬP THÔNG TIN (BẢNG TÍCH)
+LUÔN kiểm tra các biến vừa nhận được. NẾU DỮ LIỆU ĐÃ CÓ (khác rỗng hoặc null), KHÔNG ĐƯỢC HỎI LẠI. CHỈ HỎI NHỮNG GÌ CÒN THIẾU (dữ liệu rỗng hoặc null).
 
-### Step 2: Thỏa thuận phương án xử lý (`proposed_solution`)
-- **Điều kiện:** `if (state.proposed_solution == null)`
-- **Hành động (Action):** `question`
-- **Kịch bản (Prompt):** 
-  - Đàm phán phương án thanh toán. 
-  - *Context-aware:* Nếu khoản nợ thuộc nhóm nguy hiểm và có Tài sản bảo đảm (TSBĐ), Agent sẽ sử dụng thông tin TSBĐ để cảnh báo rủi ro phát mãi/bán tài sản nếu khách hàng không hợp tác đưa ra phương án. "Dạ khoản vay của mình đang được đảm bảo bằng {collateral}, nếu không thanh toán, ngân hàng sẽ buộc phải phát mãi tài sản này. Vậy anh/chị dự định phương án giải quyết sắp tới như thế nào ạ?"
-- **Expected Variable:** `solution`
+1. **Lý do quá hạn (reason):**
+   - Nếu `reason_late_paid` rỗng hoặc null: Hỏi "Dạ anh/chị cho em hỏi hiện tại mình đang gặp khó khăn gì mà chưa thể thanh toán khoản nợ này đúng hạn ạ?"
+2. **Phương án xử lý (solution):**
+   - Nếu `proposed_solution` rỗng hoặc null: Đàm phán phương án. Nhấn mạnh: "Nếu không thanh toán, ngân hàng sẽ buộc phải phát mãi tài sản bảo đảm. Vậy anh/chị dự định phương án giải quyết sắp tới như thế nào ạ?"
+3. **Số tiền cam kết nộp (promise_amount):**
+   - Nếu `promised_payment_amount` rỗng hoặc null: Hỏi "Dạ vậy anh/chị có thể nộp vào số tiền bao nhiêu để em ghi nhận lên hệ thống ạ?"
+4. **Ngày giờ cam kết nộp (promise_date):**
+   - Nếu `promised_payment_time` rỗng hoặc null: Hỏi "Dạ anh/chị dự kiến sẽ nộp số tiền này vào thời gian nào (ngày nào) để em tạo lịch hẹn ạ?"
 
-### Step 3: Chốt số tiền cam kết (`promised_payment_amount`)
-- **Điều kiện:** `if (state.promised_payment_amount == null)`
-- **Hành động (Action):** `question`
-- **Kịch bản (Prompt):** "Dạ vậy anh/chị có thể nộp vào số tiền bao nhiêu để em ghi nhận lên hệ thống ạ?"
-- **Expected Variable:** `promise_amount`
-
-### Step 4: Chốt thời gian cam kết (`promised_payment_time`)
-- **Điều kiện:** `if (state.promised_payment_time == null)`
-- **Hành động (Action):** `question`
-- **Kịch bản (Prompt):** "Dạ anh/chị dự kiến sẽ nộp số tiền này vào thời gian nào (ngày nào) để em tạo lịch hẹn ạ?"
-- **Expected Variable:** `promise_date`
-
-### Step 5: Cập nhật hệ thống (Webhook Tool)
-- **Hành động (Action):** `tool_call`
-- **Tool ID:** `update_debt_status`
-- **Logic:** Gọi webhook để đẩy tất cả các biến đã thu thập (`reason`, `solution`, `promise_amount`, `promise_date`) về hệ thống CRM của Sacombank. Sau khi gọi thành công, Procedure kết thúc, trả quyền điều khiển về Workflow chính (để chuyển sang Node kết thúc).
+BƯỚC 3: KẾT THÚC
+- Sau khi đã thu thập ĐỦ 4 thông tin trên (hoặc nếu tất cả đều đã có sẵn), BẮT BUỘC gọi tool `update_debt_status` để đẩy các dữ liệu vừa lấy được về hệ thống.
+- Cuối cùng, cảm ơn và dặn dò khách hàng thanh toán đúng hạn.
+```
