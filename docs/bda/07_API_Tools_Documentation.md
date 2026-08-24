@@ -200,7 +200,7 @@ curl "https://tiny-cycles-kiss.loca.lt/api/v1/cskh/account/balance?customerId=CU
   "success": true,
   "isPrimaryDebtor": false,
   "action": "DO_NOT_DISCLOSE_DEBT",
-  "spokenGuidance": "Dạ em cảm ơn anh/chị. Nhờ anh/chị chuyển lời giúp chủ hợp đồng vui lòng liên hệ lại tổng đài Ngân hàng An Bình sớm nhất giúp em nhé ạ."
+  "spokenGuidance": "Dạ em cảm ơn anh/chị. Nhờ anh/chị chuyển lời giúp chủ hợp đồng vui lòng liên hệ lại tổng đài Ngân hàng SacomBank sớm nhất giúp em nhé ạ."
 }
 ```
 

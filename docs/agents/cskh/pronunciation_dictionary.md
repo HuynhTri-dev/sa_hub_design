@@ -69,20 +69,20 @@ description: W3C PLS Pronunciation Lexicon for Banking CSKH & Debt Collection Vo
 
   <!-- Brand Names -->
   <lexeme>
-    <grapheme>An Binh Bank</grapheme>
-    <alias>Ngân hàng An Bình</alias>
+    <grapheme>SacomBank</grapheme>
+    <alias>Ngân hàng SacomBank</alias>
   </lexeme>
   <lexeme>
-    <grapheme>an binh bank</grapheme>
-    <alias>ngân hàng An Bình</alias>
+    <grapheme>sacombank</grapheme>
+    <alias>ngân hàng SacomBank</alias>
   </lexeme>
   <lexeme>
     <grapheme>ABB</grapheme>
-    <alias>Ngân hàng An Bình</alias>
+    <alias>Ngân hàng SacomBank</alias>
   </lexeme>
   <lexeme>
     <grapheme>abb</grapheme>
-    <alias>ngân hàng An Bình</alias>
+    <alias>ngân hàng SacomBank</alias>
   </lexeme>
 
   <!-- Currency (VND/VNĐ) -->

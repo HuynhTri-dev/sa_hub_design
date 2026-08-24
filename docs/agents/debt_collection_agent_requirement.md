@@ -57,7 +57,7 @@ flowchart TD
 ```
 
 **Kịch bản hội thoại:**
-*   **Bot:** "Dạ alo, em chào anh Lê Hoàng Long. Em gọi từ Bộ phận Quản lý Khách hàng của Ngân hàng An Bình. Để đảm bảo tính bảo mật, anh vui lòng đọc số Căn cước công dân của mình để em xác nhận trước khi trao đổi thông tin ạ."
+*   **Bot:** "Dạ alo, em chào anh Lê Hoàng Long. Em gọi từ Bộ phận Quản lý Khách hàng của Ngân hàng SacomBank. Để đảm bảo tính bảo mật, anh vui lòng đọc số Căn cước công dân của mình để em xác nhận trước khi trao đổi thông tin ạ."
 *   **KH:** "Tôi đọc này... 00123...789."
 *   **Bot (Xác nhận khớp):** "Dạ em cảm ơn anh Long. Em liên hệ để thông báo hợp đồng vay tiêu dùng của anh đang quá hạn 5 ngày với số tiền hai triệu đồng. Anh dự kiến thanh toán khoản này vào ngày nào ạ?"
 *   **KH:** "Mai tôi thanh toán nhé."
