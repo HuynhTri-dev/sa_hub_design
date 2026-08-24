@@ -1,89 +1,72 @@
-<!--
-name: Google Antigravity: Skills vs Rules vs Workflows
-description: Comprehensive guide and comparison between Skills, Rules, and Workflows in the Google Antigravity ecosystem.
--->
+# 🏢 Central Hub for Solution Architecture & System Design
 
-# Google Antigravity: Skills vs. Rules vs. Workflows
+This repository operates as a **Solution Architecture Consultancy**. It is designed to act as the "Brain" of software development projects, providing comprehensive system designs and strategies before any implementation begins.
 
-In the Google Antigravity ecosystem, **Skills**, **Rules**, and **Workflows** are the primary customization mechanisms used to guide and shape AI Agent behavior. Although all three influence how agents operate, they differ fundamentally in their core purpose, context injection scope, and trigger mechanisms.
+**Core Philosophy**: We do NOT write implementation code here. This repository focuses 100% on **Analysis, Architectural Blueprints, Risk Assessment, and System Design**. The outputs are detailed specifications, contracts, and blueprints that separate engineering teams will implement.
 
 ---
 
-## 1. Detailed Comparison
+## 🧠 The Consulting Workflow
 
-| Feature / Aspect | Skills | Rules | Workflows |
-| :--- | :--- | :--- | :--- |
-| **Primary Purpose** | Instructs the agent on how to solve **a specialized task domain** (e.g., writing unit tests, converting JSON to Pydantic, handling cloud deployments). | Enforces **constraints, coding styles, behavioral guidelines, and foundational context** that the agent must adhere to. | Defines a **sequence of structured steps** to automate repetitive, multi-phase procedures. |
-| **Scope & Context Impact** | **Local / On-demand.** Loaded into transient memory only when relevant to the current task, then freed. | **Prompt-level.** Functions as persistent foundational background context across interactions. | **Trajectory-level.** Guides the agent through multi-step executions and interconnected tasks. |
-| **Activation Mechanism** | Model-invoked (based on `SKILL.md` description) or directly invoked by the user. | **Always On**, **Glob-based** (e.g., `*.ts`), or **Model Decision**. | Manually triggered by the user via **Slash Commands** (e.g., `/workflow-name`). |
-| **Storage Location** | `.agents/skills/<skill-name>/SKILL.md` or `~/.gemini/config/skills/` | `.agents/rules/` or global config `~/.gemini/GEMINI.md` / `rules/` | Standalone Markdown files in the Workflows panel (up to 12,000 chars/file). |
+All interactions within this framework are focused on strategic design. The execution (coding) phase is strictly out-of-scope for this repository and must be handled by independent implementation teams.
 
----
-
-## 2. Practical Application Guide
-
-### When to Use Rules
-Use **Rules** when you want to define the fundamental identity, boundaries, and conventions of the agent.
-* **Example:** *"Never use `print()` statements in production Python code; always use the system `logging` module."*
-* **Example:** *"Ensure all commit messages strictly follow the Conventional Commits specification."*
-
-### 🛠️ When to Use Skills
-Use **Skills** when you want to provide specialized domain capabilities, cheat sheets, scripts, or reference implementations that the agent can draw upon when necessary.
-* **Example:** A step-by-step guide and validator script for converting complex JSON schemas into Pydantic models.
-* **Example:** Specialized instructions for debugging and profiling WebAssembly memory leaks.
-
-### 🔄 When to Use Workflows
-Use **Workflows** when you need the agent to execute a coordinated, multi-step playbook from start to finish.
-* **Example (PR Review Workflow):**
-  1. Pull the target branch and diff changes.
-  2. Invoke security scanning Skill.
-  3. Execute automated test suites.
-  4. Summarize findings into a structured review report.
+### The `/solution` Mode
+- **Trigger:** Requesting a system design, analysis, or architecture blueprint.
+- **Objective:** Understand the business problem, assess real-world constraints, and produce enterprise-grade blueprints.
+- **Constraints:**
+  - **NO CODING ALLOWED**. Do not generate implementation source code (e.g., `.js`, `.py`, `.go`).
+  - Outputs must be structured markdown artifacts (e.g., `architecture.md`, `brd.md`, `api-contract.md`, `threat-model.md`).
+  - Always consider the triad of successful software: Business Value, Technical Feasibility, and Risk/Compliance.
 
 ---
 
-## 3. Summary Matrix
+## 🏛️ Company Departments (Specialized Skills)
 
-```
-               ┌─────────────────────────────────────────┐
-               │         Google Antigravity Agent        │
-               └─────────────────────────────────────────┘
-                                    │
-         ┌──────────────────────────┼──────────────────────────┐
-         ▼                          ▼                          ▼
-   ┌───────────┐              ┌───────────┐              ┌───────────┐
-   │   RULES   │              │  SKILLS   │              │ WORKFLOWS │
-   │ (Identity │              │(Capability│              │(Execution │
-   │& Baseline)│              │& Toolkit) │              │ Playbook) │
-   └───────────┘              └───────────┘              └───────────┘
-   • Always on / Glob         • Loaded on-demand         • Slash-command triggered
-   • Constraints & style      • Task-specific guides     • Multi-step orchestration
-```
+Our AI agents operate within distinct "Departments," each responsible for a specific phase of the solution lifecycle. The agent will automatically load and follow these instructions when relevant tasks arise.
 
----
+### 🟢 Active Departments (Currently Available)
 
-## 4. Plugins, Hooks, and Sidecars
+1. **Business Solutions & Analysis (BDA)**
+   - *Focus:* Requirements gathering, scope definition, and business process modeling.
+   - *Outputs:* Business Requirements Documents (BRD), Software Requirements Specifications (SRS), User Stories, and BPMN flows via Mermaid.
 
-### Plugins
-**Concept**: Plugins are namespaced bundles used to extend Antigravity's capabilities.
-**How it works**: Instead of configuring extensions separately, Plugins allow you to group all components—including Skills, Rules, MCP Servers, and Hooks—into a single directory.
-**Setup Structure**: Each plugin folder must contain a `plugin.json` declaration file at its root. Plugins can be installed at the project level (in `.agents/plugins/`) or globally (in `~/.gemini/config/plugins/`). The system also provides built-in "Bundled Plugins" developed by Google.
+2. **System Architecture Blueprint**
+   - *Focus:* High-Level (HLD) and Low-Level Design (LLD), system topology, and technology stack selection.
+   - *Outputs:* Layered architectures, Design Patterns, and structural blueprints.
 
-### Hooks
-**Concept**: Hooks are a mechanism that allows the system to automatically inject and execute pre-configured scripts or commands when specific AI Agent events are triggered.
-**How it works**: Hooks are particularly useful for enforcing rules, automatically running linters for source code checks, or collecting analytics logs. Commonly supported events include `PreToolUse` (triggered before the Agent uses a tool) and `PostToolUse` (triggered after the Agent finishes using a tool). You can use Regex matchers to specify exactly which tools (e.g., `run_command` or `browser_*`) will trigger a specific hook.
-**Setup Structure**: Hooks are centrally defined inside a `hooks.json` file, which can be located in either the project's custom directory or the global configuration directory.
+3. **UX/UI Strategy & Analysis**
+   - *Focus:* Information architecture, user flows, and interface logic.
+   - *Outputs:* Wireframe logic, accessibility audits, and heuristic evaluations (pre-implementation).
 
-### Sidecars
-**Concept**: Sidecars are independent background processes that run alongside the main Antigravity application.
-**How it works**: Antigravity manages the entire lifecycle of Sidecars, including automatic startup and auto-restarting if the process hangs or encounters an error. This feature is specifically designed for tasks that require continuous execution, recurring scheduled commands (cron/schedule), or event listener services. Notably, from within a Sidecar, you can call the `agentapi` CLI to interact back with the system (for example, to create a new chat or send an automated message to the Agent).
-**Setup Structure**: Each sidecar is defined via a `sidecar.json` file. Unlike Plugins and Hooks, for security and resource management reasons, all Sidecars are disabled by default. Users must manually enable them by setting `"enabled": true` inside their `config.json` user configuration file.
+4. **Security & Risk Architecture**
+   - *Focus:* Threat modeling and proactive vulnerability mitigation at the design level.
+   - *Outputs:* Security Policies, RBAC models, and mitigation strategies for AI/LLM risks, Business Logic abuse, and Chained Attacks.
+
+5. **Quality Assurance (QA) Strategy**
+   - *Focus:* Defining testing standards and acceptance criteria.
+   - *Outputs:* Test plans, coverage requirements, and ISO/ISTQB compliance strategies.
 
 ---
 
-## References
+### 🟡 In Development (Planned Departments)
 
-* *Google Antigravity Documentation: Rules, Workflows, Skills, and Best Practices.*
-* [Plugins Documentation](https://antigravity.google/docs/plugins/)
-* [Hooks Documentation](https://antigravity.google/docs/hooks/)
-* [Sidecars Documentation](https://antigravity.google/docs/sidecars/)
+6. **Legal, Compliance & Feasibility Assessment**
+   - *Focus:* Evaluating legal risks (e.g., healthcare data privacy, GDPR, local data laws) and assessing technical feasibility against real-world project constraints.
+   - *Outputs:* Compliance checklists and Resource-to-Architecture mapping (e.g., recommending a Monolith over Microservices for small teams, or cost-optimized infrastructure for low-budget projects to avoid over-engineering).
+
+7. **Data & Cloud Solutions**
+   - *Focus:* Database schema design and cloud infrastructure topology.
+   - *Outputs:* Entity-Relationship Diagrams (ERD), caching strategies, and AWS/GCP architecture diagrams.
+
+8. **API & Integration Design**
+   - *Focus:* Defining the communication contracts between system boundaries and external services.
+   - *Outputs:* OpenAPI/Swagger specifications, GraphQL schemas, and 3rd-party integration strategies (Payment, SMS).
+
+---
+
+## 🚀 How to Use This Hub
+
+1. **Initiate Consultation:** Start by providing a business problem or an idea. Ask the agent to act as a Business Analyst to extract requirements.
+2. **Assess Feasibility:** Evaluate the constraints (budget, team size, legal requirements) to shape the architectural approach.
+3. **Architect the Solution:** Engage the Architecture and Security departments to draft the blueprints (HLD/LLD, Threat Models).
+4. **Handoff:** Deliver the finalized markdown blueprints, ERDs, and API contracts to your independent engineering/development teams for actual implementation.
