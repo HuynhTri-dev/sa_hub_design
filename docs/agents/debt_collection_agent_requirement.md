@@ -41,7 +41,7 @@ Khác với CSKH (khách hàng gọi vào), Thu Hồi Nợ là quá trình ngân
 
 ### 4.1 Phân Loại Khách Hàng (Theo Dữ Liệu Mẫu)
 
-Mặc dù chưa kết nối hệ thống Auto-dialer, kịch bản hỗ trợ việc chọn người dùng trực tiếp. Hệ thống cung cấp hai khách hàng mẫu với kịch bản xử lý khác biệt:
+Mặc dù chưa kết nối hệ thống Auto-dialer, kịch bản hỗ trợ việc chọn người dùng trực tiếp. Hệ thống cung cấp ba khách hàng mẫu với kịch bản xử lý khác biệt:
 
 1. **Khách hàng Nguyễn Thị Mai (Khoản vay sắp đến hạn):**
    - **Tình trạng:** Sắp đến hạn thanh toán, chưa phát sinh nợ quá hạn.
@@ -50,6 +50,10 @@ Mặc dù chưa kết nối hệ thống Auto-dialer, kịch bản hỗ trợ vi
 2. **Khách hàng Trần Văn Nam (Khoản vay quá hạn, Có TSBĐ):**
    - **Tình trạng:** Khoản vay đã quá hạn 5 ngày (đến hạn: 2026-04-24), dư nợ 50 triệu, nợ nhóm 2. Có TSBĐ là BĐS (Nhà đất tại 123 Đường ABC).
    - **Hành động của Agent:** Yêu cầu thanh toán khoản nợ quá hạn. Nếu khách hàng không cam kết hoặc không có khả năng, Agent phải đề cập đến **phương án phát mãi/bán Tài sản bảo đảm** để thu hồi nợ.
+
+3. **Khách hàng Phạm Quốc Tuấn (Vay kinh doanh quá hạn nặng, Có TSBĐ):**
+   - **Tình trạng:** Vay bổ sung vốn lưu động (HD001236) đã quá hạn 30 ngày (đến hạn: 2026-03-01), số tiền quá hạn 15 triệu, dư nợ 200 triệu. Nợ nhóm 3, và đang có nợ nhóm 2 tại TCTD khác. Có TSBĐ là BĐS (Nhà xưởng 500m2 tại KCN Hoà Khánh).
+   - **Hành động của Agent:** Thông báo mức độ nghiêm trọng (nợ nhóm 3, ảnh hưởng CIC). Yêu cầu thanh toán nợ ngay lập tức. Đề cập đến phương án phát mãi tài sản là nhà xưởng nếu khách hàng không có hướng xử lý dòng tiền kinh doanh.
 
 ### 4.2 Luồng Hội Thoại Theo Trạng Thái (Stateful Workflow)
 
