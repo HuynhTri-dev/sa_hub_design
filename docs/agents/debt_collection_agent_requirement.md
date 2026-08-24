@@ -39,43 +39,91 @@ Khác với CSKH (khách hàng gọi vào), Thu Hồi Nợ là quá trình ngân
 
 ## 4. Kịch Bản & Luồng Xử Lý (Workflows)
 
-### Luồng 1: Nhắc Nợ & Chốt Cam Kết Thanh Toán (PTP)
+### 4.1 Phân Loại Khách Hàng (Theo Dữ Liệu Mẫu)
+
+Mặc dù chưa kết nối hệ thống Auto-dialer, kịch bản hỗ trợ việc chọn người dùng trực tiếp. Hệ thống cung cấp hai khách hàng mẫu với kịch bản xử lý khác biệt:
+
+1. **Khách hàng Nguyễn Thị Mai (Khoản vay sắp đến hạn):**
+   - **Tình trạng:** Sắp đến hạn thanh toán, chưa phát sinh nợ quá hạn.
+   - **Hành động của Agent:** Chỉ nhắc nhở nhẹ nhàng về ngày đến hạn, hỏi thăm sự chuẩn bị thanh toán của khách hàng. Không hối thúc hay đe dọa.
+
+2. **Khách hàng Trần Văn Nam (Khoản vay quá hạn, Có TSBĐ):**
+   - **Tình trạng:** Khoản vay đã quá hạn 5 ngày (đến hạn: 2026-04-24), dư nợ 50 triệu, nợ nhóm 2. Có TSBĐ là BĐS (Nhà đất tại 123 Đường ABC).
+   - **Hành động của Agent:** Yêu cầu thanh toán khoản nợ quá hạn. Nếu khách hàng không cam kết hoặc không có khả năng, Agent phải đề cập đến **phương án phát mãi/bán Tài sản bảo đảm** để thu hồi nợ.
+
+### 4.2 Luồng Hội Thoại Theo Trạng Thái (Stateful Workflow)
+
+Để tối ưu trải nghiệm, Agent phải lưu lại thông tin mỗi lần gọi. Nếu cuộc gọi trước đó bị ngắt hoặc khách hàng chỉ trả lời một phần, ở lần gọi tiếp theo Agent **chỉ xác nhận lại các thông tin đã thu thập** và **hỏi tiếp các thông tin còn thiếu**. Tuyệt đối không hỏi lại từ đầu (trừ khi khách hàng muốn thay đổi).
+
+#### Các trường thông tin cần thu thập (State Variables):
+1. `confirm` (Boolean): Người dùng xác nhận thông tin khoản nợ là đúng.
+2. `reason_late_paid` (String): Lý do dẫn đến việc quá hạn.
+3. `proposed_solution` (String): Phương án xử lý khoản nợ của khách hàng (hoặc phản hồi về việc bán TSBĐ).
+4. `promised_payment_amount` (Numeric): Số tiền khách hàng hứa sẽ trả.
+5. `promised_payment_time` (Date/Time): Ngày khách hàng hứa sẽ trả.
+
+Khi khách hàng đã cung cấp đủ tất cả thông tin trên, quá trình thu hồi nợ (PTP) được tính là hoàn tất.
+
+#### Sơ đồ luồng thu thập thông tin
 
 ```mermaid
 flowchart TD
-    Start([Bot gọi ra cho khách hàng]) --> Greeting[Chào theo tên trên hệ thống]
-    Greeting --> AskID[Yêu cầu đọc CCCD để xác minh chính chủ]
-    AskID --> VerifyID{Khớp CCCD?}
-    VerifyID -- Không khớp/Sai người --> WrongPerson[Để lại lời nhắn chung, tuyệt đối không nhắc nợ]
-    VerifyID -- Khớp --> AnnounceDebt[Thông báo hợp đồng & Số tiền nợ quá hạn]
-    AnnounceDebt --> Negotiate[Đàm phán lịch hẹn thanh toán - PTP]
-    Negotiate --> Agree{Khách đồng ý hẹn ngày?}
-    Agree -- Có --> ConfirmPTP[Chốt ngày & số tiền thanh toán]
-    ConfirmPTP --> API[Cập nhật CRM: PTP, Gửi tin nhắn SMS hướng dẫn]
-    API --> End([Kết thúc cuộc gọi])
-    Agree -- Không/Từ chối --> HandleObjection[Kịch bản xử lý phản đối / Escalation]
+    Start([Bắt đầu cuộc gọi]) --> Greeting[Chào khách hàng & Yêu cầu đọc CCCD]
+    Greeting --> VerifyID{Khớp CCCD?}
+    VerifyID -- Không khớp --> WrongPerson[Để lại lời nhắn, kết thúc]
+    VerifyID -- Khớp --> CheckConfirm{Đã có confirm?}
+    
+    CheckConfirm -- Chưa --> ReadDebtInfo[Đọc chi tiết khoản nợ & Yêu cầu xác nhận] --> SaveConfirm[Lưu confirm = True] --> CheckReason
+    CheckConfirm -- Rồi --> ConfirmOldDebt[Nhắc lại khoản nợ khách đã xác nhận] --> CheckReason
+    
+    CheckReason{Đã có lý do?}
+    CheckReason -- Chưa --> AskReason[Hỏi lý do quá hạn] --> SaveReason[Lưu reason_late_paid] --> CheckSolution
+    CheckReason -- Rồi --> ConfirmOldReason[Nhắc lại lý do khách đã nêu] --> CheckSolution
+    
+    CheckSolution{Đã có phương án?}
+    CheckSolution -- Chưa --> AskSolution[Hỏi phương án xử lý / Nhắc đến bán TSBĐ nếu cần] --> SaveSolution[Lưu proposed_solution] --> CheckAmount
+    CheckSolution -- Rồi --> ConfirmOldSolution[Nhắc lại phương án khách đã chốt] --> CheckAmount
+    
+    CheckAmount{Đã hứa số tiền?}
+    CheckAmount -- Chưa --> AskAmount[Hỏi số tiền có thể thanh toán] --> SaveAmount[Lưu promised_payment_amount] --> CheckTime
+    CheckAmount -- Rồi --> ConfirmOldAmount[Nhắc lại số tiền đã hẹn] --> CheckTime
+    
+    CheckTime{Đã hẹn ngày?}
+    CheckTime -- Chưa --> AskTime[Hỏi thời gian thanh toán] --> SaveTime[Lưu promised_payment_time] --> EndSuccess
+    CheckTime -- Rồi --> ConfirmOldTime[Nhắc lại ngày hẹn trả] --> EndSuccess
+    
+    EndSuccess([Cập nhật CRM - Kết thúc thành công])
 ```
 
-**Kịch bản hội thoại:**
-*   **Bot:** "Dạ alo, em chào anh Lê Hoàng Long. Em gọi từ Bộ phận Quản lý Khách hàng của Ngân hàng SacomBank. Để đảm bảo tính bảo mật, anh vui lòng đọc số Căn cước công dân của mình để em xác nhận trước khi trao đổi thông tin ạ."
-*   **KH:** "Tôi đọc này... 00123...789."
-*   **Bot (Xác nhận khớp):** "Dạ em cảm ơn anh Long. Em liên hệ để thông báo hợp đồng vay tiêu dùng của anh đang quá hạn 5 ngày với số tiền hai triệu đồng. Anh dự kiến thanh toán khoản này vào ngày nào ạ?"
-*   **KH:** "Mai tôi thanh toán nhé."
-*   **Bot:** "Dạ em ghi nhận lịch hẹn thanh toán của anh là ngày mai với số tiền hai triệu đồng. Hệ thống sẽ tự động lưu lại xác nhận này. Em chào anh ạ!"
+#### Kịch bản hội thoại mẫu: Thu thập từng phần (Trần Văn Nam)
 
-### Luồng 2: Xử Lý Tranh Chấp & Từ Chối Nợ
+**Cuộc gọi 1: Khách hàng bận, chỉ xác nhận nợ**
+*   **Bot:** "Dạ em chào anh Trần Văn Nam. Em gọi từ Bộ phận Xử lý Nợ... Anh vui lòng đọc CCCD để em xác nhận ạ."
+*   **KH:** "079088003456."
+*   **Bot (Thu thập `confirm`):** "Dạ hợp đồng vay tiêu dùng mua nhà của anh đang quá hạn 5 ngày, số tiền quá hạn 2.500.000 VNĐ, dư nợ hiện tại 50.000.000 VNĐ. Anh xác nhận thông tin này đúng chưa ạ?"
+*   **KH:** "Đúng rồi em, nhưng anh đang bận họp, gọi lại sau nhé." (Cúp máy).
+*   *Hệ thống lưu: `confirm = True`.*
 
-```mermaid
-flowchart TD
-    Start([Đã xác thực CCCD & Công bố nợ]) --> CustomerDispute[Khách hàng phản ứng gay gắt/Báo đã nộp]
-    CustomerDispute --> BotListen[Bot lắng nghe, đồng cảm]
-    BotListen --> AskProof[Hỏi khách hàng về biên lai/thời gian nộp]
-    AskProof --> Escalate[Chuyển tiếp Human Agent để đối soát]
-    Escalate --> UpdateCRM[Ghi nhận CRM: DISPUTE_PAYMENT]
-```
+**Cuộc gọi 2: Tiếp tục thu thập lý do và phương án**
+*   **Bot:** "Dạ em chào anh Nam, em gọi lại từ ngân hàng. Anh đọc lại CCCD giúp em nhé..."
+*   **Bot (Bỏ qua câu hỏi nợ, chuyển sang `reason_late_paid`):** "Hôm trước anh đã xác nhận khoản nợ quá hạn 2.500.000 VNĐ. Anh cho em hỏi lý do vì sao mình chưa thanh toán khoản này ạ?"
+*   **KH:** "Dạo này anh khó khăn quá."
+*   *Hệ thống lưu: `reason_late_paid = "Khó khăn tài chính"`*
+*   **Bot (Chuyển sang `proposed_solution` - Áp lực TSBĐ):** "Dạ em hiểu. Tuy nhiên khoản nợ đã ở nhóm 2. Khoản vay của anh có tài sản bảo đảm là Nhà đất tại 123 Đường ABC. Nếu anh không xử lý, ngân hàng bắt buộc phải tiến hành phát mãi tài sản này. Anh dự định phương án giải quyết sắp tới như thế nào ạ?"
+*   **KH:** "Thôi đừng bán, để anh mượn gia đình."
+*   *Hệ thống lưu: `proposed_solution = "Mượn gia đình"`*
+*   *KH lại cúp máy vì bận.*
 
-**Kịch bản hội thoại:**
-*   **KH:** "Này, tôi đã thanh toán ở ATM tuần trước rồi, sao cứ gọi mãi thế?"
-*   **Bot:** "Dạ em rất xin lỗi vì sự bất tiện này. Anh cho em hỏi anh nộp tiền vào thời gian nào để em kiểm tra ngay giúp anh ạ?"
-*   **KH:** "Tôi nộp thứ 6 tuần trước rồi. Cho tôi gặp nhân viên giải quyết đi!"
-*   **Bot:** "Dạ em hiểu sự khó chịu của anh. Để đối soát chính xác, em xin phép nối máy ngay đến chuyên viên xử lý khiếu nại ạ. Anh vui lòng giữ máy." (Thực hiện Escalation / Handoff).
+**Cuộc gọi 3: Chốt số tiền và ngày giờ (`promised_payment_amount`, `promised_payment_time`)**
+*   **Bot:** "... Anh Nam ơi, hôm trước anh báo sẽ mượn gia đình để thanh toán. Vậy anh dự kiến sẽ nộp vào số tiền bao nhiêu ạ?"
+*   **KH:** "Anh nộp đủ 2 triệu rưỡi."
+*   **Bot:** "Dạ vâng, anh sẽ thanh toán 2.500.000 VNĐ vào ngày nào để em ghi nhận lịch hẹn ạ?"
+*   **KH:** "Thứ Sáu tuần này nhé."
+*   **Bot:** "Dạ em ghi nhận anh sẽ nộp 2.500.000 VNĐ vào thứ Sáu tuần này. Em cảm ơn anh ạ!"
+*   *Trạng thái hoàn tất PTP.*
+
+#### Kịch bản hội thoại mẫu: Nhắc nhở (Nguyễn Thị Mai)
+*   **Bot:** "Dạ alo, em chào chị Nguyễn Thị Mai... Chị đọc CCCD..."
+*   **Bot:** "Dạ khoản vay tiêu dùng của chị sắp đến hạn thanh toán vào ngày 30/08 tới đây. Chị đã chuẩn bị số tiền thanh toán chưa ạ?"
+*   **KH:** "Chị có tiền rồi, mai chị nộp."
+*   **Bot:** "Dạ vâng, em cảm ơn chị. Chị nhớ nộp đúng hạn để tránh phát sinh phí phạt nhé. Chào chị ạ!"

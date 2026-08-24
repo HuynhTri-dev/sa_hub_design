@@ -91,15 +91,13 @@ WEBHOOK_TOOLS = [
         "api_schema": {
             "url": f"{CBS_BASE}/customer/cards",
             "method": "GET",
-            "request_body_schema": {
-                "type": "object",
+            "query_params_schema": {
                 "properties": {
                     "customerId": {
                         "type": "string",
-                        "description": "Customer identifier obtained from verify_customer_id.",
+                        "description": "Customer identifier from session.",
                     }
-                },
-                "required": ["customerId"],
+                }
             },
             "response_body_schema": {
                 "type": "object",
@@ -182,8 +180,7 @@ WEBHOOK_TOOLS = [
         "api_schema": {
             "url": f"{CBS_BASE}/customer/balance",
             "method": "GET",
-            "request_body_schema": {
-                "type": "object",
+            "query_params_schema": {
                 "properties": {
                     "customerId": {
                         "type": "string",
@@ -192,9 +189,8 @@ WEBHOOK_TOOLS = [
                     "card_last_four": {
                         "type": "string",
                         "description": "Last 4 digits of the card to check.",
-                    },
-                },
-                "required": ["customerId", "card_last_four"],
+                    }
+                }
             },
             "response_body_schema": {
                 "type": "object",
@@ -223,8 +219,7 @@ WEBHOOK_TOOLS = [
         "api_schema": {
             "url": f"{CBS_BASE}/account/transactions",
             "method": "GET",
-            "request_body_schema": {
-                "type": "object",
+            "query_params_schema": {
                 "properties": {
                     "customerId": {
                         "type": "string",
@@ -232,10 +227,9 @@ WEBHOOK_TOOLS = [
                     },
                     "limit": {
                         "type": "integer",
-                        "description": "Number of transactions to return. Default 3, max 10.",
-                    },
-                },
-                "required": ["customerId"],
+                        "description": "Number of transactions to return.",
+                    }
+                }
             },
             "response_body_schema": {
                 "type": "object",
@@ -705,7 +699,6 @@ def configure_tools(client: ElevenLabs) -> None:
             "agent": {
                 "prompt": {
                     "tools": WEBHOOK_TOOLS,
-                    "built_in_tools": BUILT_IN_TOOLS,
                 }
             }
         },

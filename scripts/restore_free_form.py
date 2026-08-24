@@ -31,19 +31,37 @@ PROCEDURES = [
         "name": "Báo mất thẻ / Khóa thẻ",
         "type": "free_form",
         "trigger": "Customer says they lost wallet, lost card, or asks to lock card.",
-        "content": "## Khóa Thẻ Khẩn Cấp\n\n1. Ask for 12-digit CCCD.\n2. Call `verify_customer_id` with CCCD.\n3. Call `get_customer_cards` using customerId. Ask customer to select which card.\n4. Call `execute_card_lock` using customerId and card_last_four.\n5. Read spokenMessage verbatim."
+        "content": (
+            "## Khóa Thẻ Khẩn Cấp\n\n"
+            "1. Nếu `{{dynamic_variables.customerId}}` đã có sẵn, KHÔNG HỎI LẠI CCCD. Nếu chưa có, yêu cầu khách đọc 12 số CCCD và gọi `verify_customer_id`.\n"
+            "2. Gọi `get_customer_cards` với `customerId` = `{{dynamic_variables.customerId}}`. Đọc danh sách và hỏi khách muốn khóa thẻ nào.\n"
+            "3. Gọi `execute_card_lock` với `customerId` = `{{dynamic_variables.customerId}}` và 4 số cuối thẻ khách chọn.\n"
+            "4. Đọc nguyên văn kết quả trả về."
+        )
     },
     {
         "name": "Tra cứu số dư",
         "type": "free_form",
         "trigger": "Customer asks to check balance.",
-        "content": "## Tra cứu số dư\n\n1. Ask for CCCD and call `verify_customer_id`.\n2. Call `get_customer_cards`. Select card.\n3. Call `get_card_balance` with customerId.\n4. Read spokenBalance verbatim."
+        "content": (
+            "## Tra cứu số dư\n\n"
+            "1. Nếu `{{dynamic_variables.customerId}}` đã có sẵn, KHÔNG HỎI LẠI CCCD. Nếu chưa có, yêu cầu khách đọc 12 số CCCD và gọi `verify_customer_id`.\n"
+            "2. Gọi `get_customer_cards` với `customerId` = `{{dynamic_variables.customerId}}`. Hỏi khách muốn tra cứu thẻ nào.\n"
+            "3. Gọi `get_card_balance` với `customerId` = `{{dynamic_variables.customerId}}` và 4 số cuối thẻ.\n"
+            "4. Đọc nguyên văn kết quả trả về."
+        )
     },
     {
         "name": "Lịch sử giao dịch",
         "type": "free_form",
         "trigger": "Customer asks for recent transactions.",
-        "content": "## Tra cứu giao dịch\n\n1. Ask for CCCD and call `verify_customer_id`.\n2. Call `get_customer_cards`. Select card.\n3. Call `get_recent_transactions`.\n4. Read transactions aloud."
+        "content": (
+            "## Tra cứu giao dịch\n\n"
+            "1. Nếu `{{dynamic_variables.customerId}}` đã có sẵn, KHÔNG HỎI LẠI CCCD. Nếu chưa có, yêu cầu CCCD và gọi `verify_customer_id`.\n"
+            "2. Gọi `get_customer_cards` với `customerId` = `{{dynamic_variables.customerId}}`. Hỏi khách muốn kiểm tra thẻ nào.\n"
+            "3. Gọi `get_recent_transactions` với `customerId` = `{{dynamic_variables.customerId}}`.\n"
+            "4. Đọc chi tiết các giao dịch bằng tiếng Việt."
+        )
     },
     {
         "name": "Fraud Report",
