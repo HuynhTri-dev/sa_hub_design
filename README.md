@@ -20,6 +20,58 @@ All interactions within this framework are focused on strategic design. The exec
 
 ---
 
+## Skill Installation & Distribution (Quick Setup)
+
+You can easily import these skills into any project repository or your global Antigravity configuration using [`degit`](https://github.com/Rich-Harris/degit) via `npx` without cloning the entire repository.
+
+### Option 1: Download All Skills (Full Suite)
+
+To install the entire consulting skill suite into your current workspace:
+
+```bash
+# Install to workspace (.agent/skills)
+npx degit HuynhTri-dev/sa_hub_design/.agent/skills .agent/skills --force
+
+# Or install globally across all projects (~/.gemini/config/skills)
+npx degit HuynhTri-dev/sa_hub_design/.agent/skills ~/.gemini/config/skills --force
+```
+
+---
+
+### Option 2: Download Individual Skills (On-Demand)
+
+Pick and download only the specific department skills needed for your project:
+
+#### 1. Security & Risk Architecture (`security`)
+```bash
+npx degit HuynhTri-dev/sa_hub_design/.agent/skills/security .agent/skills/security --force
+```
+
+#### 2. System Architecture Blueprint (`code-architecture-blueprint`)
+```bash
+npx degit HuynhTri-dev/sa_hub_design/.agent/skills/code-architecture-blueprint .agent/skills/code-architecture-blueprint --force
+```
+
+#### 3. Business Solutions & Analysis (`bda`)
+```bash
+npx degit HuynhTri-dev/sa_hub_design/.agent/skills/bda .agent/skills/bda --force
+```
+
+#### 4. UX/UI Strategy & Analysis (`design-ux-ui`)
+```bash
+npx degit HuynhTri-dev/sa_hub_design/.agent/skills/design-ux-ui .agent/skills/design-ux-ui --force
+```
+
+#### 5. Quality Assurance Strategy (`qa-qc`)
+```bash
+npx degit HuynhTri-dev/sa_hub_design/.agent/skills/qa-qc .agent/skills/qa-qc --force
+```
+
+> [!TIP]
+> Use the `--force` flag to overwrite existing skill files when updating to the latest versions.
+
+---
+
 ## Company Departments (Specialized Skills)
 
 Our AI agents operate within distinct "Departments," each responsible for a specific phase of the solution lifecycle. The agent will automatically load and follow these instructions when relevant tasks arise.
