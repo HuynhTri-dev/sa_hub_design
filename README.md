@@ -1,4 +1,4 @@
-# 🏢 Central Hub for Solution Architecture & System Design
+# Central Hub for Solution Architecture & System Design
 
 This repository operates as a **Solution Architecture Consultancy**. It is designed to act as the "Brain" of software development projects, providing comprehensive system designs and strategies before any implementation begins.
 
@@ -6,7 +6,7 @@ This repository operates as a **Solution Architecture Consultancy**. It is desig
 
 ---
 
-## 🧠 The Consulting Workflow
+## The Consulting Workflow
 
 All interactions within this framework are focused on strategic design. The execution (coding) phase is strictly out-of-scope for this repository and must be handled by independent implementation teams.
 
@@ -20,11 +20,11 @@ All interactions within this framework are focused on strategic design. The exec
 
 ---
 
-## 🏛️ Company Departments (Specialized Skills)
+## Company Departments (Specialized Skills)
 
 Our AI agents operate within distinct "Departments," each responsible for a specific phase of the solution lifecycle. The agent will automatically load and follow these instructions when relevant tasks arise.
 
-### 🟢 Active Departments (Currently Available)
+### Active Departments (Currently Available)
 
 1. **Business Solutions & Analysis (BDA)**
    - *Focus:* Requirements gathering, scope definition, and business process modeling.
@@ -48,7 +48,7 @@ Our AI agents operate within distinct "Departments," each responsible for a spec
 
 ---
 
-### 🟡 In Development (Planned Departments)
+### In Development (Planned Departments)
 
 6. **Legal, Compliance & Feasibility Assessment**
    - *Focus:* Evaluating legal risks (e.g., healthcare data privacy, GDPR, local data laws) and assessing technical feasibility against real-world project constraints.
@@ -64,7 +64,7 @@ Our AI agents operate within distinct "Departments," each responsible for a spec
 
 ---
 
-## 🚀 How to Use This Hub
+## How to Use This Hub
 
 1. **Initiate Consultation:** Start by providing a business problem or an idea. Ask the agent to act as a Business Analyst to extract requirements.
 2. **Assess Feasibility:** Evaluate the constraints (budget, team size, legal requirements) to shape the architectural approach.
