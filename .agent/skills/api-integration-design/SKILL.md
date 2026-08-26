@@ -204,3 +204,6 @@ Produce standardized outputs using templates in `resources/` and `examples/`:
 - `resources/postman_mcp_integration.md` — Guide to setting up and using Postman MCP Server for API testing, mock generation, and code generation.
 - `examples/order_service_openapi.yaml` — Full worked example: Order Service API contract.
 - `examples/payment_integration_flow.mmd` — Full worked example: Payment Gateway integration pipeline (Mermaid).
+- `examples/core_banking_openapi.yaml` — Full worked example: Core Banking Engine OpenAPI 3.1 contract (Double-Entry Ledger, Accounts, Holds, Transfers).
+- `examples/core_banking_transfer_flow.mmd` — Full worked example: Core Banking Fund Transfer & Clearing Pipeline (Mermaid sequence diagram).
+- `examples/core_banking_api_blueprint.md` — Full worked example: Core Banking Architecture Blueprint (Double-entry principle, ACID locking, Outbox, 3-Way Reconciliation).
