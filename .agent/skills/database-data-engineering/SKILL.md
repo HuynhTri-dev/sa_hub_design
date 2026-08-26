@@ -80,9 +80,11 @@ Trigger: user has an existing schema or query and asks about performance, N+1, i
 
 1. Ask to see the schema (or read from context) and the slow/problematic queries.
 2. Check for **N+1 patterns**: any loop that fires queries per record — recommend Eager Loading, JOIN, or Batch/DataLoader pattern.
+   - **Pro Tip:** If the user provides a query log, run `scripts/n1_detector.py` on it to automatically detect high-frequency duplicate query shapes.
 3. Check **Index coverage**: does the index satisfy the WHERE + ORDER BY + SELECT columns? Suggest composite index column ordering (high-selectivity first).
 4. Check **Transaction isolation level** if deadlocks are mentioned — recommend Optimistic Locking (version column) for low-contention writes, Pessimistic Locking (SELECT FOR UPDATE) for high-contention. See `resources/db_principles.md`.
 5. Recommend reading the execution plan (EXPLAIN ANALYZE for PostgreSQL, EXPLAIN for MySQL).
+   - **Pro Tip:** If the user provides EXPLAIN output, run `scripts/query_explainer.py` on it to auto-generate a human-readable analysis of bottlenecks like Seq Scans or Hash Joins.
 6. If pagination is involved: prefer **keyset/cursor-based pagination** over OFFSET/LIMIT for large datasets.
 
 ---
@@ -138,8 +140,13 @@ Trigger: user is designing or reviewing AWS/GCP infrastructure for data workload
 | Architecture Recommendation | Bullet-point decision + trade-off table |
 | Cloud Checklist | Markdown checklist grouped by domain |
 
-## Knowledge Base & Reference Files
+## Knowledge Base, Scripts & Reference Files
 
+### Utility Scripts
+- `scripts/n1_detector.py` — Auto-detects N+1 query patterns by normalizing and counting query logs.
+- `scripts/query_explainer.py` — Analyzes EXPLAIN ANALYZE output and suggests optimizations.
+
+### Resources
 - `examples/erd.mmd` — Reference Mermaid ERD diagram showcasing best practices (surrogate keys, PK/FK/UK, snapshot fields, audit history)
 - `resources/erd_design_framework.md` — 12-step ERD design process
 - `resources/erd_principles.md` — 24 ERD design principles + 15-question review checklist
