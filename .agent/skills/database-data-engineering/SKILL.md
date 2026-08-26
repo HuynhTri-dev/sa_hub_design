@@ -78,12 +78,32 @@ Trigger: user describes a business domain and asks for a database schema or ERD.
 
 Trigger: user has an existing schema or query and asks about performance, N+1, indexing.
 
-1. Ask to see the schema (or read from context) and the slow/problematic queries.
-2. Check for **N+1 patterns**: any loop that fires queries per record — recommend Eager Loading, JOIN, or Batch/DataLoader pattern.
-3. Check **Index coverage**: does the index satisfy the WHERE + ORDER BY + SELECT columns? Suggest composite index column ordering (high-selectivity first).
-4. Check **Transaction isolation level** if deadlocks are mentioned — recommend Optimistic Locking (version column) for low-contention writes, Pessimistic Locking (SELECT FOR UPDATE) for high-contention. See `resources/db_principles.md`.
-5. Recommend reading the execution plan (EXPLAIN ANALYZE for PostgreSQL, EXPLAIN for MySQL).
-6. If pagination is involved: prefer **keyset/cursor-based pagination** over OFFSET/LIMIT for large datasets.
+1. Ask to see the schema (or read it from context) and the slow/problematic queries.
+
+2. Check for N+1 patterns:
+   - Identify loops that fire queries per record.
+   - Recommend Eager Loading, JOINs, or Batch/DataLoader patterns.
+   - If the user provides a query log, run `scripts/n1_detector.py` to automatically detect high-frequency duplicate query shapes.
+
+3. Check index coverage:
+   - Verify whether indexes support the WHERE, JOIN, ORDER BY, and SELECT clauses.
+   - Suggest composite indexes when appropriate.
+   - Consider column ordering carefully: equality/filter columns first, then range/order columns; prioritize high-selectivity columns where appropriate.
+   - Avoid recommending indexes blindly; consider write overhead, index size, and existing indexes.
+
+4. Check transaction isolation and locking if deadlocks or concurrent-write issues are mentioned:
+   - Recommend Optimistic Locking (e.g. version column) for low-contention writes.
+   - Recommend Pessimistic Locking (`SELECT ... FOR UPDATE`) for high-contention writes.
+   - See `resources/db_principles.md` for detailed guidance.
+
+5. Recommend inspecting the execution plan:
+   - PostgreSQL: `EXPLAIN (ANALYZE, BUFFERS)`
+   - MySQL: `EXPLAIN` and, when appropriate, `EXPLAIN ANALYZE`
+   - If the user provides EXPLAIN output, run `scripts/query_explainer.py` to generate a human-readable analysis of bottlenecks such as Seq Scans, inefficient joins, poor row estimates, and excessive sorting.
+
+6. If pagination is involved:
+   - Prefer keyset/cursor-based pagination over OFFSET/LIMIT for large datasets.
+   - Recommend an appropriate cursor/index strategy based on the ORDER BY columns.
 
 ---
 
@@ -138,7 +158,13 @@ Trigger: user is designing or reviewing AWS/GCP infrastructure for data workload
 | Architecture Recommendation | Bullet-point decision + trade-off table |
 | Cloud Checklist | Markdown checklist grouped by domain |
 
-## Knowledge Base & Reference Files
+## Knowledge Base, Scripts & Reference Files
+
+### Utility Scripts
+- `scripts/n1_detector.py` — Auto-detects N+1 query patterns by normalizing and counting query logs.
+- `scripts/query_explainer.py` — Analyzes EXPLAIN ANALYZE output and suggests optimizations.
+
+### Resources
 
 - `examples/erd.mmd` — Reference Mermaid ERD diagram showcasing best practices (surrogate keys, PK/FK/UK, snapshot fields, audit history)
 - `resources/erd_design_framework.md` — 12-step ERD design process
