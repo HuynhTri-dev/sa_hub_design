@@ -1,0 +1,156 @@
+%%
+%% name: payment_integration_flow.mmd
+%% description: Full worked example Mermaid sequence diagram for a Payment Gateway
+%%              integration (VNPay as reference). Demonstrates the complete async
+%%              pipeline: Client → API Gateway → Service → Queue → Worker →
+%%              Adapter → Provider → Webhook → Reconciliation.
+%%              Read-only reference example for the API & Integration Design skill.
+%%
+
+sequenceDiagram
+    autonumber
+
+    actor Client as Client<br/>(Browser / Mobile)
+    participant GW as API Gateway<br/>(Auth · Rate Limit · Validate)
+    participant OrderSvc as Order Service
+    participant DB as Database<br/>(PostgreSQL)
+    participant Redis as Redis<br/>(Idempotency · Dedup)
+    participant Queue as Message Queue<br/>(BullMQ / Kafka)
+    participant Worker as Payment Worker
+    participant CB as Circuit Breaker<br/>(State: CLOSED)
+    participant Adapter as VNPay Adapter<br/>(PaymentGatewayInterface)
+    participant VNPay as VNPay Gateway<br/>(External)
+    participant Webhook as Webhook Receiver<br/>POST /webhooks/vnpay
+    participant Recon as Reconciliation Job<br/>(Cron: every 1h)
+
+    %% ─────────────────────────────────────────────
+    %% PHASE 1 — Client Initiates Payment
+    %% ─────────────────────────────────────────────
+    rect rgb(230, 244, 255)
+        note over Client, Redis: PHASE 1 — Idempotent Order & Payment Request
+
+        Client->>GW: POST /v1/orders<br/>Headers: Authorization: Bearer JWT<br/>         Idempotency-Key: uuid-v4-abc123<br/>         X-Request-ID: trace-uuid-xyz
+        GW->>GW: Validate JWT signature & exp<br/>Check rate limit (100 req/min per user)<br/>Forward X-Request-ID downstream
+
+        GW->>OrderSvc: Forward validated request
+
+        OrderSvc->>Redis: GET idempotency:uuid-v4-abc123
+        alt Key already exists (duplicate request)
+            Redis-->>OrderSvc: HIT → cached response
+            OrderSvc-->>Client: 202 Accepted (cached — no double processing)
+        else Key not found (new request)
+            Redis-->>OrderSvc: MISS
+            OrderSvc->>DB: INSERT order (status=PENDING)<br/>INSERT idempotency record (TTL: 24h)
+            DB-->>OrderSvc: order_id = "order-uuid-001"
+
+            OrderSvc->>Queue: ENQUEUE job<br/>{order_id, amount, currency, customer_id}
+            Queue-->>OrderSvc: Job queued (job_id: "job-001")
+
+            OrderSvc-->>Client: 202 Accepted<br/>{id: "order-uuid-001", status: "pending"}<br/>Location: /v1/orders/order-uuid-001
+        end
+    end
+
+    %% ─────────────────────────────────────────────
+    %% PHASE 2 — Async Worker Processing
+    %% ─────────────────────────────────────────────
+    rect rgb(255, 248, 230)
+        note over Queue, VNPay: PHASE 2 — Async Worker → Adapter → VNPay
+
+        Queue->>Worker: DEQUEUE job {order_id, amount}
+        Worker->>DB: UPDATE order status = PROCESSING
+
+        Worker->>CB: Check Circuit Breaker state
+        alt Circuit Breaker OPEN (VNPay unreachable)
+            CB-->>Worker: OPEN — reject immediately
+            Worker->>Worker: Activate Fallback:<br/>Route to secondary provider OR<br/>enqueue to Dead Letter Queue
+            Worker->>DB: UPDATE order status = PENDING_FALLBACK
+        else Circuit Breaker CLOSED / HALF-OPEN
+            Worker->>Adapter: paymentGateway.createPayment({<br/>  amount: 450000,<br/>  currency: "VND",<br/>  reference: "order-uuid-001",<br/>  idempotency_key: "uuid-v4-abc123"<br/>})
+
+            Adapter->>VNPay: POST https://sandbox.vnpayment.vn/paymentv2/vpcpay.html<br/>Timeout: 5s | X-Request-ID forwarded
+
+            alt VNPay returns success
+                VNPay-->>Adapter: 200 OK<br/>{vnpay_txn_ref: "VNPAY20250615001",<br/> payment_url: "https://..."}
+                Adapter-->>Worker: Success {provider_ref: "VNPAY20250615001"}
+                Worker->>DB: UPDATE order SET<br/>  status = AWAITING_PAYMENT,<br/>  provider_txn_ref = "VNPAY20250615001"
+                CB->>CB: Record SUCCESS → stay CLOSED
+
+            else VNPay returns 5xx / timeout (retryable)
+                VNPay-->>Adapter: 503 Service Unavailable
+                Adapter-->>Worker: Retryable error
+                CB->>CB: Record FAILURE
+                note right of CB: If failure rate ≥ 50% over 10 calls<br/>→ Circuit Breaker trips to OPEN
+                Worker->>Queue: RE-ENQUEUE with Exponential Backoff<br/>Attempt 1 → wait 2s<br/>Attempt 2 → wait 4s + jitter<br/>Attempt 3 → wait 8s + jitter<br/>Attempt 4 → Dead Letter Queue
+
+            else VNPay returns 4xx (non-retryable)
+                VNPay-->>Adapter: 400 Bad Request
+                Adapter-->>Worker: Non-retryable error
+                Worker->>DB: UPDATE order status = FAILED<br/>SET failure_reason = "Invalid payment parameters"
+                Worker->>Queue: EMIT PaymentFailed event
+            end
+        end
+    end
+
+    %% ─────────────────────────────────────────────
+    %% PHASE 3 — Customer Completes Payment on VNPay
+    %% ─────────────────────────────────────────────
+    rect rgb(240, 255, 240)
+        note over Client, VNPay: PHASE 3 — Customer Pays on VNPay UI
+
+        Client->>VNPay: Customer opens payment_url<br/>Completes bank transfer / QR code / ATM card
+        VNPay-->>Client: Payment confirmation screen
+    end
+
+    %% ─────────────────────────────────────────────
+    %% PHASE 4 — Webhook Delivery & Verification
+    %% ─────────────────────────────────────────────
+    rect rgb(255, 240, 255)
+        note over VNPay, DB: PHASE 4 — Webhook: Secure Delivery & Idempotent Processing
+
+        VNPay->>Webhook: POST /v1/webhooks/vnpay<br/>Headers: X-VNPay-Signature: sha256=abc...<br/>         X-VNPay-Timestamp: 1718438400<br/>Body: {event_id, txn_ref, status, amount}
+
+        Webhook->>Webhook: VERIFY HMAC-SHA256 signature<br/>secret = env.VNPAY_WEBHOOK_SECRET<br/>expected = HMAC(raw_body, secret)<br/>received = X-VNPay-Signature header
+
+        alt Signature INVALID
+            Webhook-->>VNPay: 401 Unauthorized<br/>(Log security alert — possible tampering)
+        else Signature valid
+            Webhook->>Webhook: CHECK timestamp freshness<br/>|now - X-VNPay-Timestamp| ≤ 300s ?
+            alt Timestamp too old (replay attack)
+                Webhook-->>VNPay: 400 Bad Request — Expired timestamp
+            else Timestamp fresh
+                Webhook->>Redis: GET webhook:dedup:event_id
+                alt event_id already processed (duplicate webhook)
+                    Redis-->>Webhook: HIT
+                    Webhook-->>VNPay: 200 OK (acknowledge — already processed)
+                else event_id is new
+                    Redis-->>Webhook: MISS
+                    Webhook->>Redis: SET webhook:dedup:event_id (TTL: 48h)
+                    Webhook->>DB: UPDATE order SET<br/>  status = COMPLETED (or FAILED),<br/>  provider_txn_ref = txn_ref,<br/>  completed_at = now()
+                    Webhook->>Queue: EMIT OrderCompleted / OrderFailed event
+                    Webhook-->>VNPay: 200 OK (must respond within 5s)
+                end
+            end
+        end
+    end
+
+    %% ─────────────────────────────────────────────
+    %% PHASE 5 — Reconciliation (Safety Net)
+    %% ─────────────────────────────────────────────
+    rect rgb(255, 235, 235)
+        note over Recon, VNPay: PHASE 5 — Hourly Reconciliation Job (Safety Net for Lost Webhooks)
+
+        Recon->>DB: SELECT * FROM orders<br/>WHERE status IN ('PENDING','PROCESSING','AWAITING_PAYMENT')<br/>AND updated_at < now() - interval '30 minutes'
+
+        loop For each stale order
+            Recon->>VNPay: GET /api/v2/transactions/{provider_txn_ref}<br/>(VNPay transaction query API)
+            VNPay-->>Recon: {status: "SUCCESS", amount: 450000}
+
+            alt Provider status differs from internal status
+                Recon->>DB: UPDATE order status = COMPLETED<br/>(source of truth = VNPay)
+                Recon->>Queue: EMIT OrderReconciled event
+                Recon->>Recon: LOG mismatch for audit<br/>ALERT ops team if mismatch count > threshold
+            else Status matches — no action needed
+                Recon->>Recon: OK — skip
+            end
+        end
+    end
