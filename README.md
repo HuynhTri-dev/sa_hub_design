@@ -98,21 +98,21 @@ Our AI agents operate within distinct "Departments," each responsible for a spec
    - *Focus:* Defining testing standards and acceptance criteria.
    - *Outputs:* Test plans, coverage requirements, and ISO/ISTQB compliance strategies.
 
+6. **Data & Cloud Solutions**
+   - *Focus:* Database schema design and cloud infrastructure topology.
+   - *Outputs:* Entity-Relationship Diagrams (ERD), caching strategies, and AWS/GCP architecture diagrams.
+
+7. **API & Integration Design**
+   - *Focus:* Defining the communication contracts between system boundaries and external services.
+   - *Outputs:* OpenAPI/Swagger specifications, GraphQL schemas, and 3rd-party integration strategies (Payment, SMS).
+
 ---
 
 ### In Development (Planned Departments)
 
-6. **Legal, Compliance & Feasibility Assessment**
+8. **Legal, Compliance & Feasibility Assessment**
    - *Focus:* Evaluating legal risks (e.g., healthcare data privacy, GDPR, local data laws) and assessing technical feasibility against real-world project constraints.
    - *Outputs:* Compliance checklists and Resource-to-Architecture mapping (e.g., recommending a Monolith over Microservices for small teams, or cost-optimized infrastructure for low-budget projects to avoid over-engineering).
-
-7. **Data & Cloud Solutions**
-   - *Focus:* Database schema design and cloud infrastructure topology.
-   - *Outputs:* Entity-Relationship Diagrams (ERD), caching strategies, and AWS/GCP architecture diagrams.
-
-8. **API & Integration Design**
-   - *Focus:* Defining the communication contracts between system boundaries and external services.
-   - *Outputs:* OpenAPI/Swagger specifications, GraphQL schemas, and 3rd-party integration strategies (Payment, SMS).
 
 ---
 
