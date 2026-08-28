@@ -20,8 +20,8 @@ from elevenlabs.errors import BadRequestError
 # ─────────────────────────────────────────────
 # Target agent & branch IDs (from URL)
 # ─────────────────────────────────────────────
-AGENT_ID = "agent_9701m0h3t3ctfq39xbfyzx9adzb0"
-BRANCH_ID = "agtbrch_0401m0h3t3cvebbrkk6p110njdft"
+AGENT_ID = "agent_4201m118d1d2fmz9xjz9zt6kxsr8"
+BRANCH_ID = "agtbrch_7601m118d2jsf45aadzb591c1w8m"
 
 # Backend base URL — replace with actual CBS endpoint before going live
 CBS_BASE = "https://backend-banking-core.vercel.app/api/v1/cskh"
@@ -33,238 +33,175 @@ WEBHOOK_TOOLS = [
     {
         "type": "webhook",
         "name": "verify_customer_id",
-        "description": (
-            "Verifies a customer's Vietnamese Citizen ID (CCCD — 12 digits). "
-            "Returns customerId and fullName on success. "
-            "Call this ONCE per session when the user provides their CCCD. "
-            "Store customerId in session context; do NOT re-send CCCD in subsequent calls."
-        ),
+        "description": "Verifies a customer's Vietnamese Citizen ID (CCCD \u2014 12 digits). Returns customerId and fullName on success. Call this ONCE per session when the user provides their CCCD. Store customerId in session context; do NOT re-send CCCD in subsequent calls.",
         "api_schema": {
-            "url": f"{CBS_BASE}/customer/verify",
+            "kind": "webhook",
+            "url": "https://backend-banking-core.vercel.app/api/v1/cskh/customer/verify",
             "method": "POST",
             "request_body_schema": {
+                "description": "Full 12-digit Citizen ID (CCCD).",
+                "dynamic_variable": "",
+                "is_omitted": False,
                 "type": "object",
+                "required": [
+                    "cccd_number"
+                ],
                 "properties": {
                     "cccd_number": {
                         "type": "string",
                         "description": "Full 12-digit Citizen ID number (CCCD) provided by the customer.",
+                        "enum": None,
+                        "is_system_provided": False,
+                        "dynamic_variable": "",
+                        "allowed_values_dynamic_variable": "",
+                        "constant_value": "",
+                        "is_omitted": False
                     }
-                },
-                "required": ["cccd_number"],
+                }
             },
-            "response_body_schema": {
-                "type": "object",
-                "description": "Verification result.",
-                "properties": {
-                    "customerId": {
-                        "type": "string",
-                        "description": "Internal customer identifier. Store in session; use for all subsequent API calls.",
-                    },
-                    "fullName": {
-                        "type": "string",
-                        "description": "Customer's registered full name.",
-                    },
-                    "phoneNumber": {
-                        "type": "string",
-                        "description": "Customer's registered phone number. Assign this to a dynamic variable.",
-                    },
-                    "nationalIdLast4": {
-                        "type": "string",
-                        "description": "Customer's last 4 digits of CCCD. Assign this to a dynamic variable.",
-                    },
-                    "verified": {
-                        "type": "boolean",
-                        "description": "True when the CCCD matched a customer record.",
-                    },
-                },
-            },
-        },
+            "content_type": "application/json"
+        }
     },
     {
         "type": "webhook",
         "name": "get_customer_cards",
-        "description": (
-            "Retrieves all cards (type, last 4 digits, status) for an authenticated customer. "
-            "Pass customerId from session — never pass the raw CCCD again. "
-            "Only return ACTIVE cards to the customer."
-        ),
+        "description": "Retrieves all cards (type, last 4 digits, status) for an authenticated customer. Pass cccd_number is Full 12-digit Citizen ID (CCCD) from session \u2014 never pass the raw CCCD again.",
         "api_schema": {
-            "url": f"{CBS_BASE}/customer/cards",
+            "kind": "webhook",
+            "url": "https://backend-banking-core.vercel.app/api/v1/cskh/customer/cards",
             "method": "GET",
             "query_params_schema": {
                 "properties": {
-                    "customerId": {
+                    "cccd_number": {
                         "type": "string",
-                        "description": "Customer identifier from session.",
-                    }
-                }
-            },
-            "response_body_schema": {
-                "type": "object",
-                "description": "Card list for the customer.",
-                "properties": {
-                    "cards": {
-                        "type": "array",
-                        "description": "List of customer cards.",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "cardType": {
-                                    "type": "string",
-                                    "description": "Card network brand (Visa, Mastercard, JCB, Napas).",
-                                },
-                                "cardLastFour": {
-                                    "type": "string",
-                                    "description": "Last 4 digits of the card number.",
-                                },
-                                "status": {
-                                    "type": "string",
-                                    "description": "Card status: ACTIVE, LOCKED, or EXPIRED.",
-                                },
-                            },
-                        },
+                        "description": "Full 12-digit Citizen ID (CCCD).",
+                        "enum": None,
+                        "is_system_provided": False,
+                        "dynamic_variable": "",
+                        "allowed_values_dynamic_variable": "",
+                        "constant_value": "",
+                        "is_omitted": False
                     }
                 },
+                "required": []
             },
-        },
+            "content_type": "application/json"
+        }
     },
     {
         "type": "webhook",
         "name": "execute_card_lock",
-        "description": (
-            "Locks a specific card immediately. "
-            "Use customerId from session and the card_last_four digits confirmed by the customer. "
-            "Read the spokenMessage field from the response back to the customer verbatim."
-        ),
+        "description": "Locks a specific card immediately. Use cccd_number from session and the card_last_four digits confirmed by the customer. Read the spokenMessage field from the response back to the customer verbatim.",
         "api_schema": {
-            "url": f"{CBS_BASE}/customer/lock-card",
+            "kind": "webhook",
+            "url": "https://backend-banking-core.vercel.app/api/v1/cskh/customer/lock-card",
             "method": "POST",
             "request_body_schema": {
+                "description": "Information about the Full 12-digit Citizen ID (CCCD) and Last 4 digits of the card to be locked.",
+                "dynamic_variable": "",
+                "is_omitted": False,
                 "type": "object",
+                "required": [
+                    "cccd_number",
+                    "card_last_four"
+                ],
                 "properties": {
-                    "customerId": {
+                    "cccd_number": {
                         "type": "string",
-                        "description": "Customer identifier from session.",
+                        "description": "Full 12-digit Citizen ID (CCCD).",
+                        "enum": None,
+                        "is_system_provided": False,
+                        "dynamic_variable": "",
+                        "allowed_values_dynamic_variable": "",
+                        "constant_value": "",
+                        "is_omitted": False
                     },
                     "card_last_four": {
                         "type": "string",
                         "description": "Last 4 digits of the card to be locked.",
-                    },
-                },
-                "required": ["customerId", "card_last_four"],
+                        "enum": None,
+                        "is_system_provided": False,
+                        "dynamic_variable": "",
+                        "allowed_values_dynamic_variable": "",
+                        "constant_value": "",
+                        "is_omitted": False
+                    }
+                }
             },
-            "response_body_schema": {
-                "type": "object",
-                "description": "Card lock result.",
-                "properties": {
-                    "success": {
-                        "type": "boolean",
-                        "description": "True when the card was locked successfully.",
-                    },
-                    "spokenMessage": {
-                        "type": "string",
-                        "description": "Pre-formatted Vietnamese confirmation message to read aloud to the customer.",
-                    },
-                },
-            },
-        },
+            "content_type": "application/json"
+        }
     },
     {
         "type": "webhook",
         "name": "get_card_balance",
-        "description": (
-            "Retrieves the available balance for a specific card. "
-            "Returns spokenBalance — a pre-formatted Vietnamese string (e.g. 'muoi lam trieu dong'). "
-            "Read spokenBalance verbatim; do NOT reformat the number."
-        ),
+        "description": "Retrieves the available balance for a specific card. Returns spokenBalance \u2014 a pre-formatted Vietnamese string (e.g. 'muoi lam trieu dong'). Read spokenBalance verbatim; do NOT reformat the number.",
         "api_schema": {
-            "url": f"{CBS_BASE}/customer/balance",
+            "kind": "webhook",
+            "url": "https://backend-banking-core.vercel.app/api/v1/cskh/customer/balance",
             "method": "GET",
             "query_params_schema": {
                 "properties": {
-                    "customerId": {
+                    "cccd_number": {
                         "type": "string",
-                        "description": "Customer identifier from session.",
+                        "description": "Full 12-digit Citizen ID (CCCD) in the session.",
+                        "enum": None,
+                        "is_system_provided": False,
+                        "dynamic_variable": "",
+                        "allowed_values_dynamic_variable": "",
+                        "constant_value": "",
+                        "is_omitted": False
                     },
                     "card_last_four": {
                         "type": "string",
                         "description": "Last 4 digits of the card to check.",
+                        "enum": None,
+                        "is_system_provided": False,
+                        "dynamic_variable": "",
+                        "allowed_values_dynamic_variable": "",
+                        "constant_value": "",
+                        "is_omitted": False
                     }
-                }
-            },
-            "response_body_schema": {
-                "type": "object",
-                "description": "Card balance result.",
-                "properties": {
-                    "balance": {
-                        "type": "number",
-                        "description": "Raw numeric balance in VND.",
-                    },
-                    "spokenBalance": {
-                        "type": "string",
-                        "description": "Pre-formatted Vietnamese text for TTS. Read this verbatim.",
-                    },
                 },
+                "required": []
             },
-        },
+            "content_type": "application/json"
+        }
     },
     {
         "type": "webhook",
         "name": "get_recent_transactions",
-        "description": (
-            "Retrieves the last N recent transactions for a card. "
-            "Default limit=3. Read each transaction aloud in natural Vietnamese: "
-            "date, amount (say 'tru' for negative, 'cong' for positive), and description."
-        ),
+        "description": "Retrieves the last N recent transactions for a card. Read each transaction aloud in natural Vietnamese: date, amount (say 'tru' for negative, 'cong' for positive), and description.",
         "api_schema": {
-            "url": f"{CBS_BASE}/account/transactions",
+            "kind": "webhook",
+            "url": "https://backend-banking-core.vercel.app/api/v1/cskh/account/transactions?customerId={customerId}&limit={limit}",
             "method": "GET",
-            "query_params_schema": {
-                "properties": {
-                    "customerId": {
-                        "type": "string",
-                        "description": "Customer identifier from session.",
-                    },
-                    "limit": {
-                        "type": "integer",
-                        "description": "Number of transactions to return.",
-                    }
+            "path_params_schema": {
+                "customerId": {
+                    "type": "string",
+                    "description": "Customer identifier from session.",
+                    "enum": None,
+                    "is_system_provided": False,
+                    "dynamic_variable": "",
+                    "allowed_values_dynamic_variable": "",
+                    "constant_value": "",
+                    "is_omitted": False
+                },
+                "limit": {
+                    "type": "string",
+                    "description": "Number of transactions to return.",
+                    "enum": None,
+                    "is_system_provided": False,
+                    "dynamic_variable": "",
+                    "allowed_values_dynamic_variable": "",
+                    "constant_value": "",
+                    "is_omitted": False
                 }
             },
-            "response_body_schema": {
-                "type": "object",
-                "description": "Transaction history.",
-                "properties": {
-                    "transactions": {
-                        "type": "array",
-                        "description": "List of recent transactions, newest first.",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "date": {
-                                    "type": "string",
-                                    "description": "Transaction date (ISO 8601).",
-                                },
-                                "amount": {
-                                    "type": "number",
-                                    "description": "Amount in VND. Negative = debit, positive = credit.",
-                                },
-                                "description": {
-                                    "type": "string",
-                                    "description": "Human-readable transaction description.",
-                                },
-                                "type": {
-                                    "type": "string",
-                                    "description": "Transaction type (DEBIT, CREDIT, TRANSFER, ATM_WITHDRAWAL).",
-                                },
-                            },
-                        },
-                    }
-                },
-            },
-        },
-    },
+            "content_type": "application/json"
+        }
+    }
 ]
+
 
 BUILT_IN_TOOLS = {
     "end_call": {
@@ -329,7 +266,7 @@ AUTH_STEPS_WITH_RETRY_TRANSFER = [
             {
                 "condition": {
                     "type": "llm",
-                    "condition": "verify_customer_id returned verified=false or an error",
+                    "condition": "verify_customer_id returned verified=False or an error",
                 },
                 "steps": [
                     {
@@ -396,7 +333,7 @@ AUTH_STEPS_WITH_RETRY_DENY = [
             {
                 "condition": {
                     "type": "llm",
-                    "condition": "verify_customer_id returned verified=false or an error",
+                    "condition": "verify_customer_id returned verified=False or an error",
                 },
                 "steps": [
                     {
@@ -472,213 +409,41 @@ CARD_SELECT_STEPS = [
 ]
 
 PROCEDURES = [
-    # ── 1. Emergency Card Lock (deterministic) ───────────────────────────────
     {
-        "name": "Bao Mat The / Khoa The Khan Cap",
-        "slug": "proc_emergency_lock",
-        "type": "deterministic",
-        "trigger": (
-            "When the user says they lost their wallet, lost their card, "
-            "suspects their card is compromised, or asks to lock, block, or freeze their card immediately."
-        ),
-        "content": build_deterministic_content(
-            trigger=(
-                "When the user says they lost their wallet, lost their card, "
-                "suspects their card is compromised, or asks to lock, block, or freeze their card immediately."
-            ),
-            steps=[
-                *AUTH_STEPS_WITH_RETRY_TRANSFER,
-                *CARD_SELECT_STEPS,
-                {
-                    "type": "branch",
-                    "branches": [
-                        {
-                            "condition": {
-                                "type": "llm",
-                                "condition": "there is exactly one active card",
-                            },
-                            "steps": [
-                                {
-                                    "type": "ask",
-                                    "instruction": (
-                                        "Read the single card details and ask for confirmation before locking. "
-                                        "Say: 'Da em thay anh/chi dang co the [cardType] duoi [cardLastFour]. "
-                                        "Anh/chi co muon khoa the nay khong a?'"
-                                    ),
-                                }
-                            ],
-                        }
-                    ],
-                    "fallback": [
-                        {
-                            "type": "ask",
-                            "instruction": (
-                                "Ask which card to lock by last 4 digits. "
-                                "Say: 'Anh/chi muon khoa the nao a? Vui long cho em biet 4 so cuoi cua the can khoa.'"
-                            ),
-                        }
-                    ],
-                },
-                {
-                    "type": "tool_call",
-                    "tool_name": "execute_card_lock",
-                    "instruction": (
-                        "Call execute_card_lock with customerId from session "
-                        "and card_last_four confirmed by the customer."
-                    ),
-                },
-                {
-                    "type": "branch",
-                    "branches": [
-                        {
-                            "condition": {
-                                "type": "llm",
-                                "condition": "execute_card_lock returned success=false or an error",
-                            },
-                            "steps": [
-                                {
-                                    "type": "tell",
-                                    "instruction": (
-                                        "Inform the customer the lock failed and transfer to a human agent. "
-                                        "Say: 'Da em xin loi, he thong hien khong the khoa the. "
-                                        "Em se chuyen anh/chi den tong dai vien xu ly ngay a.'"
-                                    ),
-                                },
-                                {
-                                    "type": "system_tool",
-                                    "system_tool_name": "transfer_to_number",
-                                },
-                            ],
-                        }
-                    ],
-                    "fallback": [
-                        {
-                            "type": "tell",
-                            "instruction": (
-                                "Read the spokenMessage field from execute_card_lock response verbatim. "
-                                "Then ask if the customer needs anything else."
-                            ),
-                        }
-                    ],
-                },
-            ],
-        ),
+        "name": "B\u00e1o m\u1ea5t th\u1ebb / Kh\u00f3a th\u1ebb",
+        "slug": "proc_b\u00e1o_m\u1ea5t_th\u1ebb__kh\u00f3a_th\u1ebb",
+        "type": "free_form",
+        "trigger": "Customer says they lost wallet, lost card, or asks to lock card.",
+        "content": "---\nname: B\u00e1o m\u1ea5t th\u1ebb / Kh\u00f3a th\u1ebb\ntrigger: Customer says they lost wallet, lost card, or asks to lock card.\n---\n\n## Kh\u00f3a Th\u1ebb Kh\u1ea9n C\u1ea5p\n\n1. N\u1ebfu `{{dynamic_variables`_`cccd_number}}` \u0111\u00e3 c\u00f3 s\u1eb5n, KH\u00d4NG H\u1eceI L\u1ea0I CCCD. N\u1ebfu ch\u01b0a c\u00f3, y\u00eau c\u1ea7u kh\u00e1ch \u0111\u1ecdc 12 s\u1ed1 CCCD v\u00e0 g\u1ecdi `verify_customer_id`.\n2. G\u1ecdi `get_customer_cards` v\u1edbi `customerId` = `{{dynamic_variables`_`customerId}}`. \u0110\u1ecdc danh s\u00e1ch v\u00e0 h\u1ecfi kh\u00e1ch mu\u1ed1n kh\u00f3a th\u1ebb n\u00e0o.\n3. G\u1ecdi `execute_card_lock` v\u1edbi `cccd_number` = `{{dynamic_variables`_`cccd_number}}` v\u00e0 4 s\u1ed1 cu\u1ed1i th\u1ebb kh\u00e1ch ch\u1ecdn.\n4. \u0110\u1ecdc nguy\u00ean v\u0103n k\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1."
     },
-
-    # ── 2. Check Card Balance (deterministic) ────────────────────────────────
     {
-        "name": "Tra Cuu So Du Tai Khoan / The",
-        "slug": "proc_check_balance",
-        "type": "deterministic",
-        "trigger": (
-            "When the user asks to check their account balance, how much money is in their account, "
-            "their current card balance, or says 'xem so du', 'con bao nhieu tien', 'tai khoan co bao nhieu'."
-        ),
-        "content": build_deterministic_content(
-            trigger=(
-                "When the user asks to check their account balance, how much money is in their account, "
-                "their current card balance, or says 'xem so du', 'con bao nhieu tien', 'tai khoan co bao nhieu'."
-            ),
-            steps=[
-                *AUTH_STEPS_WITH_RETRY_DENY,
-                *CARD_SELECT_STEPS,
-                {
-                    "type": "tool_call",
-                    "tool_name": "get_card_balance",
-                    "instruction": (
-                        "Call get_card_balance with customerId from session "
-                        "and card_last_four selected by the customer."
-                    ),
-                },
-                {
-                    "type": "tell",
-                    "instruction": (
-                        "Read spokenBalance from the response verbatim. Do NOT reformat the number. "
-                        "Say: 'Da, so du kha dung cua the duoi [cardLastFour] la [spokenBalance] a.' "
-                        "Then ask if the customer needs anything else."
-                    ),
-                },
-            ],
-        ),
+        "name": "Tra c\u1ee9u s\u1ed1 d\u01b0",
+        "slug": "proc_tra_c\u1ee9u_s\u1ed1_d\u01b0",
+        "type": "free_form",
+        "trigger": "Customer asks to check balance.",
+        "content": "---\nname: Tra c\u1ee9u s\u1ed1 d\u01b0\ntrigger: Customer asks to check balance.\n---\n\n## Tra c\u1ee9u s\u1ed1 d\u01b0\n\n1. N\u1ebfu `{{dynamic_variables`_`cccd_number}}` \u0111\u00e3 c\u00f3 s\u1eb5n, KH\u00d4NG H\u1eceI L\u1ea0I CCCD. N\u1ebfu ch\u01b0a c\u00f3, y\u00eau c\u1ea7u kh\u00e1ch \u0111\u1ecdc 12 s\u1ed1 CCCD v\u00e0 g\u1ecdi `verify_customer_id`.\n2. G\u1ecdi `get_customer_cards` v\u1edbi `cccd_number` = `{{dynamic_variables`_`cccd_number}}`. H\u1ecfi kh\u00e1ch mu\u1ed1n tra c\u1ee9u th\u1ebb n\u00e0o.\n3. G\u1ecdi `get_card_balance` v\u1edbi `cccd_number` = `{{dynamic_variables`_`cccd_number}}` v\u00e0 4 s\u1ed1 cu\u1ed1i th\u1ebb c\u1ea7n tra.\n4. \u0110\u1ecdc nguy\u00ean v\u0103n k\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1."
     },
-
-    # ── 3. Recent Transactions (deterministic) ───────────────────────────────
     {
-        "name": "Tra Cuu Lich Su Giao Dich",
-        "slug": "proc_recent_tx",
-        "type": "deterministic",
-        "trigger": (
-            "When the user asks about recent transactions, why their balance changed, "
-            "whether a transfer went through, or says 'xem lich su giao dich', "
-            "'tai sao so du bi tru', 'moi chuyen khoan xong chua', 'tra cuu giao dich'."
-        ),
-        "content": build_deterministic_content(
-            trigger=(
-                "When the user asks about recent transactions, why their balance changed, "
-                "whether a transfer went through, or says 'xem lich su giao dich', "
-                "'tai sao so du bi tru', 'moi chuyen khoan xong chua', 'tra cuu giao dich'."
-            ),
-            steps=[
-                *AUTH_STEPS_WITH_RETRY_TRANSFER,
-                *CARD_SELECT_STEPS,
-                {
-                    "type": "tool_call",
-                    "tool_name": "get_recent_transactions",
-                    "instruction": (
-                        "Call get_recent_transactions with customerId from session and limit=3."
-                    ),
-                },
-                {
-                    "type": "tell",
-                    "instruction": (
-                        "Read each transaction aloud in natural Vietnamese, newest first. "
-                        "For each: state the date naturally (e.g. 'ngay 22 thang 8'), "
-                        "say 'tru [amount]' for negative amounts and 'cong [amount]' for positive, "
-                        "then the description. "
-                        "Example: 'Giao dich gan nhat la vao ngay 22 thang 8, tru nam muoi nghin dong tai ATM a.' "
-                        "After all transactions, ask if the customer needs anything else."
-                    ),
-                },
-            ],
-        ),
+        "name": "L\u1ecbch s\u1eed giao d\u1ecbch",
+        "slug": "proc_l\u1ecbch_s\u1eed_giao_d\u1ecbch",
+        "type": "free_form",
+        "trigger": "Customer asks for recent transactions.",
+        "content": "---\nname: L\u1ecbch s\u1eed giao d\u1ecbch\ntrigger: Customer asks for recent transactions.\n---\n\n## Tra c\u1ee9u giao d\u1ecbch\n\n1. N\u1ebfu `{{dynamic_variables`_`customerId}}` \u0111\u00e3 c\u00f3 s\u1eb5n, KH\u00d4NG H\u1eceI L\u1ea0I CCCD. N\u1ebfu ch\u01b0a c\u00f3, y\u00eau c\u1ea7u CCCD v\u00e0 g\u1ecdi `verify_customer_id`.\n2. G\u1ecdi `get_customer_cards` v\u1edbi `customerId` = `{{dynamic_variables`_`customerId}}`. H\u1ecfi kh\u00e1ch mu\u1ed1n ki\u1ec3m tra th\u1ebb n\u00e0o.\n3. G\u1ecdi `get_recent_transactions` v\u1edbi `customerId` = `{{dynamic_variables`_`customerId}}`.\n4. \u0110\u1ecdc chi ti\u1ebft c\u00e1c giao d\u1ecbch b\u1eb1ng ti\u1ebfng Vi\u1ec7t."
     },
-
-    # ── 4. Unsupported Banking (free_form) ───────────────────────────────────
     {
-        "name": "Nghiep Vu Ngoai Pham Vi Ho Tro",
+        "name": "Fraud Report",
+        "slug": "proc_fraud_report",
+        "type": "free_form",
+        "trigger": "Customer reports fraud, unrecognized transactions.",
+        "content": "Transfer immediately via `transfer_to_number`."
+    },
+    {
+        "name": "Unsupported",
         "slug": "proc_unsupported",
         "type": "free_form",
-        "trigger": (
-            "When the user requests any of the following: card unlock (mo khoa the), "
-            "card activation (kich hoat the moi), OTP-related services, "
-            "SMS Banking registration or cancellation, corporate loans (vay doanh nghiep), "
-            "home loans (vay mua nha), opening a new bank account, "
-            "letters of credit (mo L/C), complex dispute resolution, "
-            "interest rate negotiation, or any banking service the agent cannot handle directly."
-        ),
-        "content": (
-            "## Procedure: Nghiep Vu Ngoai Pham Vi Ho Tro\n\n"
-            "This procedure handles any banking request the CSKH agent cannot process directly.\n\n"
-            "### Steps\n\n"
-            "1. Acknowledge the customer's request with empathy and a calm tone.\n"
-            "2. Clearly explain that this specific service requires a human specialist "
-            "   and cannot be processed through the automated channel.\n"
-            "3. Tell the customer exactly:\n"
-            "   *'Da doi voi yeu cau nay, em chua duoc cap quyen ho tro truc tiep. "
-            "   De duoc ho tro chinh xac nhat, em xin phep chuyen tiep cuoc tro chuyen "
-            "   cua anh/chi den chuyen vien tu van cua ngan hang a.'*\n"
-            "4. Use [system_tool id=\"transfer_to_number\" name=\"Transfer to human agent\"] "
-            "   to immediately route the call to a human operator.\n\n"
-            "### Important Rules\n\n"
-            "- Do NOT attempt to answer or provide information about OTP, card unlock, "
-            "  card activation, SMS Banking toggle, corporate loans, or L/C.\n"
-            "- Do NOT ask the customer for additional information before transferring.\n"
-            "- Do NOT hallucinate or fabricate answers for unsupported banking topics.\n"
-            "- The tool `toggle_sms_banking` does NOT exist and must NEVER be called.\n"
-            "- The tools `send_otp`, `verify_otp`, `execute_card_unlock`, and "
-            "  `execute_card_activation` do NOT exist and must NEVER be called.\n"
-        ),
-    },
+        "trigger": "Customer asks for OTP, unlock card, loans.",
+        "content": "Explain not supported. Transfer via `transfer_to_number`."
+    }
 ]
 
 
