@@ -11,6 +11,7 @@ This repository operates as a **Solution Architecture Consultancy**. It is desig
 All interactions within this framework are focused on strategic design. The execution (coding) phase is strictly out-of-scope for this repository and must be handled by independent implementation teams.
 
 ### The `/solution` Mode
+
 - **Trigger:** Requesting a system design, analysis, or architecture blueprint.
 - **Objective:** Understand the business problem, assess real-world constraints, and produce enterprise-grade blueprints.
 - **Constraints:**
@@ -29,11 +30,11 @@ You can easily import these skills into any project repository or your global An
 To install the entire consulting skill suite into your current workspace:
 
 ```bash
-# Install to workspace (.agent/skills)
-npx degit HuynhTri-dev/sa_hub_design/.agent/skills .agent/skills --force
+# Install to workspace (.agents/skills)
+npx degit HuynhTri-dev/sa_hub_design/.agents/skills .agentss/skills --force
 
 # Or install globally across all projects (~/.gemini/config/skills)
-npx degit HuynhTri-dev/sa_hub_design/.agent/skills ~/.gemini/config/skills --force
+npx degit HuynhTri-dev/sa_hub_design/.agentss/skills ~/.gemini/config/skills --force
 ```
 
 ---
@@ -43,28 +44,33 @@ npx degit HuynhTri-dev/sa_hub_design/.agent/skills ~/.gemini/config/skills --for
 Pick and download only the specific department skills needed for your project:
 
 #### 1. Security & Risk Architecture (`security`)
+
 ```bash
-npx degit HuynhTri-dev/sa_hub_design/.agent/skills/security .agent/skills/security --force
+npx degit HuynhTri-dev/sa_hub_design/.agents/skills/security .agents/skills/security --force
 ```
 
 #### 2. System Architecture Blueprint (`code-architecture-blueprint`)
+
 ```bash
-npx degit HuynhTri-dev/sa_hub_design/.agent/skills/code-architecture-blueprint .agent/skills/code-architecture-blueprint --force
+npx degit HuynhTri-dev/sa_hub_design/.agents/skills/code-architecture-blueprint .agents/skills/code-architecture-blueprint --force
 ```
 
 #### 3. Business Solutions & Analysis (`bda`)
+
 ```bash
-npx degit HuynhTri-dev/sa_hub_design/.agent/skills/bda .agent/skills/bda --force
+npx degit HuynhTri-dev/sa_hub_design/.agents/skills/bda .agents/skills/bda --force
 ```
 
 #### 4. UX/UI Strategy & Analysis (`design-ux-ui`)
+
 ```bash
-npx degit HuynhTri-dev/sa_hub_design/.agent/skills/design-ux-ui .agent/skills/design-ux-ui --force
+npx degit HuynhTri-dev/sa_hub_design/.agents/skills/design-ux-ui .agents/skills/design-ux-ui --force
 ```
 
 #### 5. Quality Assurance Strategy (`qa-qc`)
+
 ```bash
-npx degit HuynhTri-dev/sa_hub_design/.agent/skills/qa-qc .agent/skills/qa-qc --force
+npx degit HuynhTri-dev/sa_hub_design/.agents/skills/qa-qc .agents/skills/qa-qc --force
 ```
 
 > [!TIP]
@@ -110,7 +116,7 @@ Our AI agents operate within distinct "Departments," each responsible for a spec
 
 ### In Development (Planned Departments)
 
-8. **Legal, Compliance & Feasibility Assessment**
+1. **Legal, Compliance & Feasibility Assessment**
    - *Focus:* Evaluating legal risks (e.g., healthcare data privacy, GDPR, local data laws) and assessing technical feasibility against real-world project constraints.
    - *Outputs:* Compliance checklists and Resource-to-Architecture mapping (e.g., recommending a Monolith over Microservices for small teams, or cost-optimized infrastructure for low-budget projects to avoid over-engineering).
 
